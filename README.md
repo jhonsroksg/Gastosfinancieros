@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FinanzApp 💰
 
-## Getting Started
+Una aplicación web moderna, responsiva y rápida para el control de tus gastos personales. 
+Construida con **Next.js 14**, **Supabase**, **Tailwind CSS v4** y **React Query**.
 
-First, run the development server:
+## Características Principales ✨
 
+- **Registro Rápido**: Formulario de un solo clic con atajos de fecha y calculadora integrada.
+- **Subida de Recibos**: Adjunta fotos o PDFs a tus transacciones (almacenado seguro en Supabase Storage).
+- **Dashboard Interactivo**: Gráficas de tendencias en tiempo real con _Recharts_ y carga diferida (lazy loading).
+- **Gestor de Presupuestos**: Alertas visuales con código de color cuando excedes el presupuesto del mes.
+- **Automatización**: Generador invisible de transacciones recurrentes (hipotecas, suscripciones, salarios) sin necesidad de configurar un CRON en el servidor.
+- **PWA (Progressive Web App)**: Instalable en dispositivos iOS y Android con caché offline básico y un rendimiento de >90 en Lighthouse.
+- **Modo Oscuro Nativo**: Soporte completo para temas del sistema con `next-themes`.
+
+---
+
+## Estructura Tecnológica 🛠️
+
+- **Frontend**: Next.js 14 (App Router) + React 18 + TypeScript.
+- **Estilos**: Tailwind CSS v4 + `shadcn/ui` + `framer-motion`.
+- **Datos y Estado**: `@tanstack/react-query` + `zustand`.
+- **Formularios**: `react-hook-form` + `zod`.
+- **Backend & Auth**: Supabase (PostgreSQL + Row Level Security).
+- **Service Worker**: `@serwist/next`.
+
+---
+
+## Instalación y Ejecución Local 🚀
+
+### 1. Clonar el repositorio
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/tu-usuario/finanzapp.git
+cd finanzapp
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Instalar dependencias
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Configurar Entorno (Supabase)
+Debes tener un proyecto en [Supabase](https://supabase.com). 
+1. Crea un archivo `.env.local` en la raíz del proyecto.
+2. Añade tus llaves:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-larga
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Configurar Base de Datos
+Ve a la sección **SQL Editor** en tu panel de Supabase y ejecuta el contenido del archivo `supabase/schema.sql` (disponible en la carpeta `supabase` del proyecto). 
+Luego, ejecuta la migración para las categorías archivadas:
+```sql
+alter table public.categories add column if not exists is_archived boolean default false;
+```
 
-## Learn More
+### 5. Iniciar el servidor de desarrollo
+```bash
+npm run dev
+```
+La aplicación estará disponible en `http://localhost:3000`.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Despliegue en Vercel (Producción) 🌍
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Desplegar FinanzApp es increíblemente fácil gracias a la integración nativa con Vercel:
 
-## Deploy on Vercel
+1. Empuja tu código a un repositorio en **GitHub**.
+2. Ve a [Vercel](https://vercel.com) y selecciona **Add New Project**.
+3. Importa tu repositorio de GitHub.
+4. En la sección de configuración (Environment Variables), asegúrate de añadir:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+5. Haz clic en **Deploy**.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Vercel detectará automáticamente que es un proyecto de Next.js, configurará los comandos de *build* (`npm run build`) y levantará tu aplicación en una URL segura con HTTPS.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Notas sobre Accesibilidad y Rendimiento ⚡
+FinanzApp está diseñada para priorizar el rendimiento. Si deseas medir los Core Web Vitals, asegúrate de correr Lighthouse en la versión "build" de la aplicación, no en el servidor de desarrollo local:
+```bash
+npm run build
+npm run start
+```
