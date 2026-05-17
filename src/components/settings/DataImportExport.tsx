@@ -123,7 +123,7 @@ export function DataImportExport() {
           let catId = null
           let catType = 'expense' // default
           if (categoryName) {
-            const found = categories?.find(c => c.name.toLowerCase() === String(categoryName).toLowerCase())
+            const found = categories?.find((c: any) => c.name.toLowerCase() === String(categoryName).toLowerCase())
             if (found) {
               catId = found.id
               catType = found.type

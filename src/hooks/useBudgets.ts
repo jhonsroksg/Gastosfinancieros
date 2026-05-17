@@ -72,7 +72,7 @@ export function useCopyBudgets() {
       }
 
       // Format for new month
-      const newBudgets = previousBudgets.map(b => ({
+      const newBudgets = previousBudgets.map((b: any) => ({
         user_id: userData.user.id,
         category_id: b.category_id,
         subcategory_id: b.subcategory_id,

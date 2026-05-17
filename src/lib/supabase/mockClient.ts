@@ -179,7 +179,7 @@ export function createMockSupabaseClient() {
         const list = getLocalData(`finanzapp_${table}`, [])
         const toAdd = Array.isArray(records) ? records : [records]
         
-        const newList = [...list]
+        const newList: any[] = [...list]
         toAdd.forEach(rec => {
           // simple check by id or categories
           const idx = newList.findIndex((x: any) => x.id === rec.id || (table === 'budgets' && x.category_id === rec.category_id && x.month === rec.month && x.year === rec.year))

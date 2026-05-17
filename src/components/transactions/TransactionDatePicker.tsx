@@ -3,7 +3,7 @@ import { es } from "date-fns/locale"
 import { Calendar as CalendarIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import {
   Popover,
@@ -39,27 +39,25 @@ export function TransactionDatePicker({ date, setDate }: TransactionDatePickerPr
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant={"outline"}
-          className={cn(
-            "w-full justify-start text-left font-normal",
-            !date && "text-muted-foreground"
-          )}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? (
-            isToday(date) ? (
-              "Hoy"
-            ) : isYesterday(date) ? (
-              "Ayer"
-            ) : (
-              format(date, "PPP", { locale: es })
-            )
+      <PopoverTrigger
+        className={cn(
+          buttonVariants({ variant: "outline" }),
+          "w-full justify-start text-left font-normal h-10 px-3",
+          !date && "text-muted-foreground"
+        )}
+      >
+        <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+        {date ? (
+          isToday(date) ? (
+            "Hoy"
+          ) : isYesterday(date) ? (
+            "Ayer"
           ) : (
-            <span>Seleccionar fecha</span>
-          )}
-        </Button>
+            format(date, "PPP", { locale: es })
+          )
+        ) : (
+          <span>Seleccionar fecha</span>
+        )}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0 sm:divide-x border-b">
@@ -83,7 +81,6 @@ export function TransactionDatePicker({ date, setDate }: TransactionDatePickerPr
             mode="single"
             selected={date}
             onSelect={handleSelect}
-            initialFocus
             locale={es}
           />
         </div>

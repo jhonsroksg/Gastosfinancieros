@@ -15,13 +15,15 @@ export function TransactionFAB() {
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button
-          size="icon"
-          className="fixed bottom-[80px] right-4 lg:bottom-8 lg:right-8 w-14 h-14 rounded-full shadow-lg bg-emerald-600 hover:bg-emerald-700 text-white z-50 transition-transform hover:scale-105 active:scale-95"
-        >
-          <Plus className="w-6 h-6" />
-        </Button>
+      <SheetTrigger
+        render={
+          <Button
+            size="icon"
+            className="fixed bottom-[80px] right-4 lg:bottom-8 lg:right-8 w-14 h-14 rounded-full shadow-lg bg-emerald-600 hover:bg-emerald-700 text-white z-50 transition-transform hover:scale-105 active:scale-95"
+          />
+        }
+      >
+        <Plus className="w-6 h-6" />
       </SheetTrigger>
       <SheetContent side="bottom" className="h-[90vh] sm:h-auto sm:max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-l-3xl sm:rounded-tr-none sm:w-[500px] sm:side-right p-0">
         <div className="p-6">

@@ -57,7 +57,7 @@ export function ProfileSettings() {
           <Label>Moneda Principal</Label>
           <Select 
             value={formData.default_currency} 
-            onValueChange={v => setFormData(p => ({ ...p, default_currency: v }))}
+            onValueChange={v => setFormData(p => ({ ...p, default_currency: v || 'HNL' }))}
           >
             <SelectTrigger>
               <SelectValue />
@@ -76,8 +76,8 @@ export function ProfileSettings() {
           <Select 
             value={theme} 
             onValueChange={v => {
-              setTheme(v)
-              updateMutation.mutate({ theme: v })
+              setTheme(v || 'system')
+              updateMutation.mutate({ theme: v || 'system' })
             }}
           >
             <SelectTrigger>

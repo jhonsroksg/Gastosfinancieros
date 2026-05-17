@@ -1,6 +1,6 @@
 export type Category = {
   id: string
-  user_id: string
+  user_id?: string | null
   name: string
   type: 'income' | 'expense'
   icon: string | null
@@ -32,7 +32,7 @@ export type Transaction = {
   receipt_filename: string | null
   recurring_id: string | null
   created_at: string
-  updated_at: string
+  updated_at?: string
   
   categories?: Category | null
   subcategories?: Subcategory | null
