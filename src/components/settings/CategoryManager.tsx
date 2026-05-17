@@ -7,7 +7,15 @@ import { createClient } from '@/lib/supabase/client'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import * as Icons from 'lucide-react'
-import { Plus, Archive, ArchiveRestore } from 'lucide-react'
+import { Plus, Archive, ArchiveRestore, Edit2 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
+} from '@/components/ui/dialog'
 
 export function CategoryManager() {
   // We want to see all categories here, including archived
@@ -28,7 +36,7 @@ export function CategoryManager() {
       name: newCatName.trim(),
       type: newCatType,
       user_id: userData.user?.id,
-      color: '#94a3b8', // Default slate color
+      color: '#3b82f6', // Default beautiful blue color
       icon: 'Tag'
     })
 
@@ -68,6 +76,53 @@ export function CategoryManager() {
     // @ts-ignore
     const Icon = cat.icon ? Icons[cat.icon] || Icons.Circle : Icons.Circle
 
+    const [isEditOpen, setIsEditOpen] = useState(false)
+    const [editName, setEditName] = useState(cat.name)
+    const [editColor, setEditColor] = useState(cat.color || '#94a3b8')
+    const [editIconName, setEditIconName] = useState(cat.icon || 'Tag')
+
+    const PRESET_COLORS = [
+      '#ef4444', // Red
+      '#f97316', // Orange
+      '#f59e0b', // Amber
+      '#10b981', // Emerald
+      '#06b6d4', // Cyan
+      '#3b82f6', // Blue
+      '#6366f1', // Indigo
+      '#8b5cf6', // Violet
+      '#d946ef', // Fuchsia
+      '#ec4899', // Pink
+      '#64748b', // Slate
+    ]
+
+    const PRESET_ICONS = [
+      'Home', 'Car', 'GraduationCap', 'Utensils', 'PawPrint', 'Heart',
+      'Clapperboard', 'CreditCard', 'Landmark', 'PiggyBank', 'Gift',
+      'Scale', 'Briefcase', 'TrendingUp', 'ShoppingBag', 'Tag',
+      'Coffee', 'Gamepad', 'Music', 'Phone', 'Plane', 'Activity', 'ShieldCheck'
+    ]
+
+    const handleSave = async () => {
+      if (!editName.trim()) return
+
+      const { error } = await supabase
+        .from('categories')
+        .update({
+          name: editName.trim(),
+          color: editColor,
+          icon: editIconName
+        })
+        .eq('id', cat.id)
+
+      if (error) {
+        toast.error('Error al actualizar categoría')
+      } else {
+        toast.success('Categoría actualizada con éxito')
+        setIsEditOpen(false)
+        queryClient.invalidateQueries({ queryKey: ['categories'] })
+      }
+    }
+
     return (
       <div className={`flex items-center justify-between p-3 border rounded-lg ${cat.is_archived ? 'bg-slate-50 dark:bg-slate-900 opacity-60' : 'bg-white dark:bg-slate-950'}`}>
         <div className="flex items-center gap-3">
@@ -75,14 +130,95 @@ export function CategoryManager() {
             <Icon className="w-4 h-4" />
           </div>
           <div>
-            <p className="font-medium text-sm">{cat.name} {cat.is_default && <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full ml-2">Default</span>}</p>
+            <p className="font-medium text-sm flex items-center gap-2">
+              {cat.name} 
+              {cat.is_default && <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full">Default</span>}
+            </p>
           </div>
         </div>
-        {!cat.is_default && (
-          <Button variant="ghost" size="icon" onClick={() => handleToggleArchive(cat)}>
-            {cat.is_archived ? <ArchiveRestore className="w-4 h-4 text-emerald-600" /> : <Archive className="w-4 h-4 text-slate-400 hover:text-rose-500" />}
-          </Button>
-        )}
+        
+        <div className="flex items-center gap-1">
+          {/* Edit Dialog */}
+          <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+            <DialogTrigger
+              render={
+                <Button variant="ghost" size="icon">
+                  <Edit2 className="w-4 h-4 text-slate-400 hover:text-blue-500" />
+                </Button>
+              }
+            />
+            <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Editar Categoría</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4 text-left">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-500">Nombre de la Categoría</label>
+                  <Input 
+                    value={editName}
+                    onChange={e => setEditName(e.target.value)}
+                    placeholder="Ej. Restaurantes"
+                  />
+                </div>
+
+                {/* Color Selector */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-500">Color Distintivo</label>
+                  <div className="flex flex-wrap gap-2">
+                    {PRESET_COLORS.map(c => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setEditColor(c)}
+                        className={`w-7 h-7 rounded-full transition-transform ${editColor === c ? 'scale-110 ring-2 ring-offset-2 ring-slate-400' : 'hover:scale-105'}`}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Icon Selector */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold text-slate-500">Seleccionar Icono</label>
+                  <div className="grid grid-cols-6 gap-2 max-h-[160px] overflow-y-auto p-1 border rounded-lg bg-slate-50 dark:bg-slate-900">
+                    {PRESET_ICONS.map(iconName => {
+                      // @ts-ignore
+                      const PreviewIcon = Icons[iconName] || Icons.Circle
+                      const isSelected = editIconName === iconName
+
+                      return (
+                        <button
+                          key={iconName}
+                          type="button"
+                          onClick={() => setEditIconName(iconName)}
+                          className={`flex items-center justify-center p-2 rounded-lg transition-all ${isSelected ? 'bg-white dark:bg-slate-950 shadow-sm border border-slate-200 dark:border-slate-800' : 'hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                          style={{ color: isSelected ? editColor : '#64748b' }}
+                        >
+                          <PreviewIcon className="w-5 h-5" />
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsEditOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleSave} disabled={!editName.trim()}>
+                  Guardar Cambios
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {!cat.is_default && (
+            <Button variant="ghost" size="icon" onClick={() => handleToggleArchive(cat)}>
+              {cat.is_archived ? <ArchiveRestore className="w-4 h-4 text-emerald-600" /> : <Archive className="w-4 h-4 text-slate-400 hover:text-rose-500" />}
+            </Button>
+          )}
+        </div>
       </div>
     )
   }
