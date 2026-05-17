@@ -122,7 +122,16 @@ export function createMockSupabaseClient() {
   const getCategories = () => getLocalData('finanzapp_categories', DEFAULT_CATEGORIES)
   const getTransactions = () => getLocalData('finanzapp_transactions', INITIAL_TRANSACTIONS)
   const getBudgets = () => getLocalData('finanzapp_budgets', INITIAL_BUDGETS)
-  const getRecurring = () => getLocalData('finanzapp_recurring', INITIAL_RECURRING)
+  const getRecurring = () => {
+    if (typeof window !== 'undefined') {
+      const oldVal = localStorage.getItem('finanzapp_recurring')
+      if (oldVal && !localStorage.getItem('finanzapp_recurring_transactions')) {
+        localStorage.setItem('finanzapp_recurring_transactions', oldVal)
+        localStorage.removeItem('finanzapp_recurring')
+      }
+    }
+    return getLocalData('finanzapp_recurring_transactions', INITIAL_RECURRING)
+  }
   
   const getSettings = () => {
     if (typeof window === 'undefined') return {}
