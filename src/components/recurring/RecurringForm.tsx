@@ -16,7 +16,7 @@ import { CategorySelector } from '../transactions/CategorySelector'
 const recurringSchema = z.object({
   type: z.enum(['income', 'expense']),
   amount: z.number().positive({ message: 'Debe ser mayor a 0' }),
-  category_id: z.string().uuid({ message: 'Selecciona una categoría' }),
+  category_id: z.string().min(1, { message: 'Selecciona una categoría' }),
   description: z.string().optional(),
   frequency: z.enum(['daily', 'weekly', 'biweekly', 'monthly', 'yearly']),
   day_of_month: z.number().min(1).max(31).optional().nullable(),
