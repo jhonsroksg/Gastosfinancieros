@@ -33,6 +33,7 @@ export type Transaction = {
   recurring_id: string | null
   created_at: string
   updated_at?: string
+  is_executed: boolean
   
   categories?: Category | null
   subcategories?: Subcategory | null
