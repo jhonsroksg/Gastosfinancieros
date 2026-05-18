@@ -107,8 +107,16 @@ function BudgetProgressItem({
       if (!user) throw new Error('Usuario no autenticado')
 
       // Use the month and year props to set the date
-      // We will set it to the first day of the selected month
-      const transactionDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
+      const now = new Date()
+      let transactionDate = ''
+      
+      if (now.getMonth() + 1 === month && now.getFullYear() === year) {
+         // Mes actual, usar el día exacto de hoy localmente
+         transactionDate = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`
+      } else {
+         // Otro mes, usar el 1ro de ese mes (evitando problemas de UTC)
+         transactionDate = `${year}-${month.toString().padStart(2, '0')}-01`
+      }
 
       await createTransaction.mutateAsync({
         id: crypto.randomUUID(),
@@ -131,9 +139,20 @@ function BudgetProgressItem({
   }
 
   const handleToggleItem = async (transaction: Transaction) => {
+    const isExecuting = !transaction.is_executed
+    const updates: Partial<Transaction> = {
+      is_executed: isExecuting
+    }
+    
+    // Si lo estamos ejecutando, actualizamos la fecha de registro a hoy
+    if (isExecuting) {
+      const now = new Date()
+      updates.transaction_date = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`
+    }
+
     await updateTransaction.mutateAsync({
       id: transaction.id,
-      is_executed: !transaction.is_executed
+      ...updates
     })
   }
 
