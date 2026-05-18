@@ -48,7 +48,7 @@ export default function BudgetPage() {
   
   const totalBudget = budgets?.reduce((sum, b) => sum + b.amount, 0) || 0
   const totalSpent = transactions
-    .filter(t => t.type === 'expense')
+    .filter(t => t.type === 'expense' && t.is_executed)
     .reduce((sum, t) => sum + t.amount, 0)
 
   const percentage = totalBudget > 0 ? Math.min(100, Math.round((totalSpent / totalBudget) * 100)) : 0

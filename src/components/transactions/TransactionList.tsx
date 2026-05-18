@@ -60,7 +60,9 @@ export function TransactionList({ filters }: TransactionListProps) {
     return <div className="text-center text-red-500 py-8">Error al cargar transacciones</div>
   }
 
-  const transactions = data?.pages.flatMap((page) => page.data) || []
+  const transactions = (data?.pages.flatMap((page) => page.data) || []).filter(
+    (t) => t.type === 'income' || t.is_executed
+  )
 
   if (transactions.length === 0) {
     return (

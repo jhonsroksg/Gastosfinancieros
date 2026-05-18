@@ -47,7 +47,8 @@ export function useDashboardData(selectedDate: Date) {
         .lte('transaction_date', currentMonthEnd.toISOString().split('T')[0])
         .order('transaction_date', { ascending: false })
 
-      const transactions = (transactionsData || []) as Transaction[]
+      const allTransactions = (transactionsData || []) as Transaction[]
+      const transactions = allTransactions.filter(t => t.type === 'income' || t.is_executed)
       const budgets = (budgetsData || []) as Budget[]
 
       // --- KPIs Calculation ---
