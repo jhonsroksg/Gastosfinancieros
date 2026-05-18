@@ -70,6 +70,10 @@ function BudgetProgressItem({
   const [newItemAmount, setNewItemAmount] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const [editingItemId, setEditingItemId] = useState<string | null>(null)
+  const [editItemDesc, setEditItemDesc] = useState('')
+  const [editItemAmount, setEditItemAmount] = useState('')
+
   const upsertMutation = useUpsertBudget()
   const createTransaction = useCreateTransaction()
   const updateTransaction = useUpdateTransaction()
@@ -131,6 +135,24 @@ function BudgetProgressItem({
       id: transaction.id,
       is_executed: !transaction.is_executed
     })
+  }
+
+  const handleStartEditItem = (item: Transaction) => {
+    setEditingItemId(item.id)
+    setEditItemDesc(item.description || '')
+    setEditItemAmount(item.amount.toString())
+  }
+
+  const handleSaveEditItem = async (item: Transaction) => {
+    const numAmount = parseFloat(editItemAmount)
+    if (!editItemDesc.trim() || isNaN(numAmount) || numAmount <= 0) return
+
+    await updateTransaction.mutateAsync({
+      id: item.id,
+      description: editItemDesc.trim(),
+      amount: numAmount
+    })
+    setEditingItemId(null)
   }
 
   const budgetAmount = budget?.amount || 0
@@ -259,21 +281,52 @@ function BudgetProgressItem({
                 <div className="space-y-2">
                   {transactions.map(item => (
                     <div key={item.id} className="flex items-center justify-between group py-1">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <label className="flex items-center gap-3 cursor-pointer min-w-0 flex-1">
-                          <Switch 
-                            checked={!!item.is_executed}
-                            onCheckedChange={() => handleToggleItem(item)}
-                            className="data-[state=checked]:bg-emerald-500"
+                      {editingItemId === item.id ? (
+                        <div className="flex items-center gap-2 w-full">
+                          <Input
+                            type="text"
+                            className="h-8 text-sm flex-1"
+                            value={editItemDesc}
+                            onChange={e => setEditItemDesc(e.target.value)}
+                            autoFocus
+                            onKeyDown={e => e.key === 'Enter' && handleSaveEditItem(item)}
                           />
-                          <span className={`text-sm truncate transition-colors ${item.is_executed ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-300'}`}>
-                            {item.description || 'Sin descripción'}
-                          </span>
-                        </label>
-                      </div>
-                      <span className={`text-sm font-medium ml-4 ${item.is_executed ? 'text-slate-400' : 'text-slate-700 dark:text-slate-300'}`}>
-                        {formatCurrency(item.amount)}
-                      </span>
+                          <Input
+                            type="number"
+                            className="h-8 text-sm w-24 text-right"
+                            value={editItemAmount}
+                            onChange={e => setEditItemAmount(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleSaveEditItem(item)}
+                          />
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-600" onClick={() => handleSaveEditItem(item)}>
+                            <Check className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <label className="flex items-center gap-3 cursor-pointer min-w-0 flex-1">
+                              <Switch 
+                                checked={!!item.is_executed}
+                                onCheckedChange={() => handleToggleItem(item)}
+                                className="data-[state=checked]:bg-emerald-500"
+                              />
+                              <span className={`text-sm truncate transition-colors ${item.is_executed ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-300'}`}>
+                                {item.description || 'Sin descripción'}
+                              </span>
+                            </label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-sm font-medium ${item.is_executed ? 'text-slate-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                              {formatCurrency(item.amount)}
+                            </span>
+                            <Edit2 
+                              className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-emerald-500" 
+                              onClick={() => handleStartEditItem(item)}
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
