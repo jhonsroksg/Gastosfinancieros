@@ -169,7 +169,9 @@ function BudgetProgressItem({
               <div className="flex items-center gap-2">
                 <h4 className="font-semibold text-slate-900 dark:text-slate-100">{category.name}</h4>
                 {isOverBudget && (
-                  <AlertCircle className="w-4 h-4 text-rose-500" title="Planificación excede el presupuesto" />
+                  <span title="Planificación excede el presupuesto">
+                    <AlertCircle className="w-4 h-4 text-rose-500" />
+                  </span>
                 )}
               </div>
               <p className="text-xs text-slate-500">

@@ -27,7 +27,8 @@ const INITIAL_TRANSACTIONS: Transaction[] = [
     receipt_url: null,
     receipt_filename: null,
     recurring_id: null,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    is_executed: true
   },
   {
     id: 'tx-2',
@@ -42,7 +43,8 @@ const INITIAL_TRANSACTIONS: Transaction[] = [
     receipt_url: null,
     receipt_filename: null,
     recurring_id: null,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    is_executed: true
   },
   {
     id: 'tx-3',
@@ -57,7 +59,8 @@ const INITIAL_TRANSACTIONS: Transaction[] = [
     receipt_url: null,
     receipt_filename: null,
     recurring_id: null,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    is_executed: true
   },
   {
     id: 'tx-4',
@@ -72,7 +75,8 @@ const INITIAL_TRANSACTIONS: Transaction[] = [
     receipt_url: null,
     receipt_filename: null,
     recurring_id: null,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    is_executed: true
   }
 ]
 
