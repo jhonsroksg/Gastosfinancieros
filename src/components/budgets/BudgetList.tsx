@@ -2,14 +2,14 @@ import { useState } from 'react'
 import { Budget, Category, Transaction } from '@/types/database'
 import { formatCurrency } from '@/lib/utils/currency'
 import { useUpsertBudget } from '@/hooks/useBudgets'
-import { useCreateTransaction, useUpdateTransaction } from '@/hooks/useTransactions'
+import { useCreateTransaction, useUpdateTransaction, useDeleteTransaction } from '@/hooks/useTransactions'
 import { createClient } from '@/lib/supabase/client'
 import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import * as Icons from 'lucide-react'
-import { Check, Edit2, AlertCircle, ChevronDown, Plus } from 'lucide-react'
+import { Check, Edit2, AlertCircle, ChevronDown, Plus, Trash2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface BudgetListProps {
@@ -77,6 +77,7 @@ function BudgetProgressItem({
   const upsertMutation = useUpsertBudget()
   const createTransaction = useCreateTransaction()
   const updateTransaction = useUpdateTransaction()
+  const deleteTransaction = useDeleteTransaction()
   const supabase = createClient()
 
   // @ts-ignore
@@ -172,6 +173,12 @@ function BudgetProgressItem({
       amount: numAmount
     })
     setEditingItemId(null)
+  }
+
+  const handleDeleteItem = async (id: string) => {
+    if (confirm('¿Estás seguro de que quieres eliminar este sub-gasto?')) {
+      await deleteTransaction.mutateAsync(id)
+    }
   }
 
   const budgetAmount = budget?.amount || 0
@@ -342,6 +349,10 @@ function BudgetProgressItem({
                             <Edit2 
                               className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-emerald-500" 
                               onClick={() => handleStartEditItem(item)}
+                            />
+                            <Trash2 
+                              className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-rose-500" 
+                              onClick={() => handleDeleteItem(item.id)}
                             />
                           </div>
                         </>
