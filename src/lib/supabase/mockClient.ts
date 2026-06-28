@@ -155,6 +155,11 @@ export function createMockSupabaseClient() {
     return JSON.parse(val)
   }
 
+  const setSettings = (settings: any) => {
+    if (typeof window === 'undefined') return
+    localStorage.setItem('finanzapp_settings', JSON.stringify(settings))
+  }
+
   const queryState = {
     table: '',
     filters: [] as any[],
@@ -189,6 +194,14 @@ export function createMockSupabaseClient() {
         return builder
       },
       upsert: (records: any, options?: any) => {
+        if (table === 'user_settings') {
+          const current = getSettings()
+          const rec = Array.isArray(records) ? records[0] : records
+          const updated = { ...current, ...rec }
+          setSettings(updated)
+          builder.mockResponse = { data: updated, error: null }
+          return builder
+        }
         const list = getLocalData(`finanzapp_${table}`, [])
         const toAdd = Array.isArray(records) ? records : [records]
         
@@ -261,7 +274,16 @@ export function createMockSupabaseClient() {
         else if (table === 'transactions') list = getTransactions()
         else if (table === 'budgets') list = getBudgets()
         else if (table === 'recurring_transactions') list = getRecurring()
-        else if (table === 'user_settings') return { data: getSettings(), error: null }
+        else if (table === 'user_settings') {
+          if (builder.updateFields) {
+            const current = getSettings()
+            const updated = { ...current, ...builder.updateFields }
+            setSettings(updated)
+            builder.updateFields = null
+            return { data: updated, error: null }
+          }
+          return { data: getSettings(), error: null }
+        }
 
         // Apply filters
         queryState.filters.forEach(filter => {

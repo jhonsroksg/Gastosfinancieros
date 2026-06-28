@@ -44,8 +44,10 @@ export function useUpdateSettings() {
 
       const { data, error } = await supabase
         .from('user_settings')
-        .update(updates)
-        .eq('user_id', userData.user.id)
+        .upsert({
+          user_id: userData.user.id,
+          ...updates
+        })
         .select()
         .single()
 
