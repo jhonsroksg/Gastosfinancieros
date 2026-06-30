@@ -3,8 +3,9 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { createClient } from '@/lib/supabase/client'
-import { useCreateTransaction } from '@/hooks/useTransactions'
+import { useCreateTransaction, useUpdateTransaction } from '@/hooks/useTransactions'
 import { useSubcategories } from '@/hooks/useCategories'
+import { Transaction } from '@/types/database'
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -30,14 +31,17 @@ type TransactionFormValues = z.infer<typeof transactionSchema>
 
 interface TransactionFormProps {
   onSuccess?: () => void
+  initialData?: Transaction
+  onCancel?: () => void
 }
 
-export function TransactionForm({ onSuccess }: TransactionFormProps) {
+export function TransactionForm({ onSuccess, initialData, onCancel }: TransactionFormProps) {
   const [file, setFile] = useState<File | null>(null)
   const [isRecurring, setIsRecurring] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const createMutation = useCreateTransaction()
+  const updateMutation = useUpdateTransaction()
   const supabase = createClient()
 
   const {
@@ -48,7 +52,14 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
     formState: { errors },
   } = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
-    defaultValues: {
+    defaultValues: initialData ? {
+      type: initialData.type,
+      amount: initialData.amount,
+      category_id: initialData.category_id || '',
+      subcategory_id: initialData.subcategory_id || undefined,
+      transaction_date: new Date(initialData.transaction_date + 'T12:00:00'),
+      description: initialData.description || '',
+    } : {
       type: 'expense',
       amount: undefined,
       transaction_date: new Date(),
@@ -68,39 +79,71 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
       const user = userData?.user
       if (!user) throw new Error('Usuario no autenticado')
 
-      const transactionId = crypto.randomUUID()
-      let receipt_url = null
-      let receipt_filename = null
+      if (initialData) {
+        let receipt_url = initialData.receipt_url
+        let receipt_filename = initialData.receipt_filename
 
-      if (file) {
-        const fileExt = file.name.split('.').pop()
-        const fileName = `${crypto.randomUUID()}.${fileExt}`
-        const filePath = `${user.id}/${transactionId}/${fileName}`
+        if (file) {
+          const fileExt = file.name.split('.').pop()
+          const fileName = `${crypto.randomUUID()}.${fileExt}`
+          const filePath = `${user.id}/${initialData.id}/${fileName}`
 
-        const { error: uploadError } = await supabase.storage
-          .from('receipts')
-          .upload(filePath, file)
+          const { error: uploadError } = await supabase.storage
+            .from('receipts')
+            .upload(filePath, file)
 
-        if (uploadError) throw uploadError
+          if (uploadError) throw uploadError
 
-        receipt_url = filePath
-        receipt_filename = file.name
+          receipt_url = filePath
+          receipt_filename = file.name
+        }
+
+        await updateMutation.mutateAsync({
+          id: initialData.id,
+          type: data.type,
+          amount: data.amount,
+          category_id: data.category_id,
+          subcategory_id: data.subcategory_id || null,
+          transaction_date: data.transaction_date.toISOString().split('T')[0],
+          description: data.description || null,
+          receipt_url,
+          receipt_filename,
+        })
+      } else {
+        const transactionId = crypto.randomUUID()
+        let receipt_url = null
+        let receipt_filename = null
+
+        if (file) {
+          const fileExt = file.name.split('.').pop()
+          const fileName = `${crypto.randomUUID()}.${fileExt}`
+          const filePath = `${user.id}/${transactionId}/${fileName}`
+
+          const { error: uploadError } = await supabase.storage
+            .from('receipts')
+            .upload(filePath, file)
+
+          if (uploadError) throw uploadError
+
+          receipt_url = filePath
+          receipt_filename = file.name
+        }
+
+        await createMutation.mutateAsync({
+          id: transactionId,
+          user_id: user.id,
+          type: data.type,
+          amount: data.amount,
+          category_id: data.category_id,
+          subcategory_id: data.subcategory_id,
+          transaction_date: data.transaction_date.toISOString().split('T')[0],
+          description: data.description,
+          receipt_url,
+          receipt_filename,
+        })
       }
 
-      await createMutation.mutateAsync({
-        id: transactionId,
-        user_id: user.id,
-        type: data.type,
-        amount: data.amount,
-        category_id: data.category_id,
-        subcategory_id: data.subcategory_id,
-        transaction_date: data.transaction_date.toISOString().split('T')[0],
-        description: data.description,
-        receipt_url,
-        receipt_filename,
-      })
-
-      if (isRecurring) {
+      if (isRecurring && !initialData) {
         // Here we would trigger Mission 4 logic
         console.log('User wants to make this recurring')
       }
@@ -241,15 +284,22 @@ export function TransactionForm({ onSuccess }: TransactionFormProps) {
         <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
       </div>
 
-      <Button
-        type="submit"
-        className={`w-full h-12 text-lg font-bold rounded-xl text-white ${
-          selectedType === 'income' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-500 hover:bg-rose-600'
-        }`}
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? 'Guardando...' : 'Guardar'}
-      </Button>
+      <div className="flex gap-3">
+        {onCancel && (
+          <Button type="button" variant="outline" className="w-full h-12 text-lg font-bold rounded-xl" onClick={onCancel} disabled={isSubmitting}>
+            Cancelar
+          </Button>
+        )}
+        <Button
+          type="submit"
+          className={`w-full h-12 text-lg font-bold rounded-xl text-white ${
+            selectedType === 'income' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-rose-500 hover:bg-rose-600'
+          }`}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Guardando...' : (initialData ? 'Actualizar' : 'Guardar')}
+        </Button>
+      </div>
     </form>
   )
 }

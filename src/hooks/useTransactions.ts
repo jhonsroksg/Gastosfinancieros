@@ -113,6 +113,7 @@ export function useUpdateTransaction() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      toast.success('Transacción actualizada')
     },
     onError: (error) => {
       toast.error('Error al actualizar la transacción: ' + error.message)
